@@ -1,6 +1,7 @@
 """Hotel-related MCP tools."""
 
 from typing import Any, Dict, List
+from datetime import datetime
 
 from mcp.types import CallToolResult, TextContent, Tool
 
@@ -18,6 +19,53 @@ class HotelTools(BaseTool):
     def __init__(self, http_client):
         super().__init__(http_client)
         self.settings = get_settings()
+    
+    def _calculate_nights(self, from_date: str, to_date: str) -> int:
+        """Calculate number of nights between dates."""
+        try:
+            check_in = datetime.strptime(from_date, "%Y-%m-%d")
+            check_out = datetime.strptime(to_date, "%Y-%m-%d")
+            return (check_out - check_in).days
+        except:
+            return 1
+    
+    def _format_price_breakdown(self, room_data: Dict, occupancy: List[Dict], nights: int) -> str:
+        """Format detailed price breakdown with per-night and per-guest calculations."""
+        total_price = room_data.get('TotalPrice', room_data.get('price', 0))
+        currency = room_data.get('Currency', room_data.get('currency', 'EUR'))
+        
+        # Calculate totals
+        total_adults = sum(occ.get('adults', 1) for occ in occupancy)
+        total_rooms = sum(occ.get('roomCount', 1) for occ in occupancy)
+        
+        # Base calculations
+        price_per_night = total_price / nights if nights > 0 else total_price
+        price_per_room_per_night = price_per_night / total_rooms if total_rooms > 0 else price_per_night
+        price_per_person_total = total_price / total_adults if total_adults > 0 else total_price
+        
+        breakdown = f"💰 **Price Breakdown:**\n"
+        breakdown += f"• **Total Price**: {total_price:.2f} {currency}\n"
+        breakdown += f"• **Per Night**: {price_per_night:.2f} {currency} ({nights} night{'s' if nights != 1 else ''})\n"
+        breakdown += f"• **Per Room/Night**: {price_per_room_per_night:.2f} {currency} ({total_rooms} room{'s' if total_rooms != 1 else ''})\n"
+        breakdown += f"• **Per Person (Total)**: {price_per_person_total:.2f} {currency} ({total_adults} guest{'s' if total_adults != 1 else ''})\n"
+        
+        # Add fee breakdown if available
+        if room_data.get('Fee'):
+            breakdown += f"\n📋 **Additional Fees:**\n"
+            total_fees = 0
+            for fee in room_data['Fee']:
+                fee_amount = fee.get('Amount', 0)
+                fee_currency = fee.get('Currency', currency)
+                fee_name = fee.get('FeeTypeName', fee.get('Type', 'Additional Fee'))
+                breakdown += f"• {fee_name}: {fee_amount} {fee_currency}\n"
+                if fee_currency == currency:
+                    total_fees += fee_amount
+            
+            if total_fees > 0:
+                grand_total = total_price + total_fees
+                breakdown += f"• **Total with Fees**: {grand_total:.2f} {currency}\n"
+        
+        return breakdown
     
     def get_tool_definitions(self) -> List[Tool]:
         """Return hotel tool definitions."""
@@ -39,16 +87,29 @@ class HotelTools(BaseTool):
    - Convert city names to codes (Mumbai→BOM, Delhi→DEL, etc.)
    - Format dates as YYYY-MM-DD
    - Structure occupancy properly
-   - Use defaults: currency=USD, supplier=dida
+   - Use defaults: currency=EUR, supplier=dida
 
-**Purpose**: Search and discover available hotels with real-time pricing and availability.
+**Purpose**: Search and discover available hotels with comprehensive pricing analysis and availability.
 
 **What it does**:
 - Searches thousands of hotels across global destinations
-- Provides real-time pricing in USD
+- Provides **detailed pricing breakdown** in EUR (default) or specified currency
+- Shows **per-night calculations** and **per-guest pricing**
+- Returns **enhanced price analysis** including:
+  * Total stay cost with currency
+  * Price per night breakdown
+  * Cost per guest for the entire stay
+  * Visual formatting with separators and numbering
 - Shows room availability for specific dates and guest configurations
 - Returns detailed hotel information including amenities and location
 - Supports multiple room types and guest combinations
+
+**Enhanced Pricing Display Features**:
+- **Numbered hotel listings** for easy reference
+- **Per-night cost calculations** based on stay duration
+- **Per-guest pricing** based on total occupancy
+- **Professional formatting** with icons and visual separators
+- **Room basis and booking codes** clearly displayed
 
 **City Code Reference**:
 - Mumbai/Bombay → BOM
@@ -57,7 +118,7 @@ class HotelTools(BaseTool):
 - Chennai/Madras → MAA
 - Kolkata/Calcutta → CCU
 
-**Returns**: List of available hotels with pricing, room details, supplier info, and booking codes.""",
+**Returns**: Numbered list of hotels with comprehensive pricing analysis, per-night/per-guest calculations, room details, supplier info, and booking codes in a professional, easy-to-read format.""",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -83,8 +144,8 @@ class HotelTools(BaseTool):
                         },
                         "currency": {
                             "type": "string",
-                            "description": "Currency code (default: USD)",
-                            "default": "USD"
+                            "description": "Currency code (default: EUR)",
+                            "default": "EUR"
                         },
                         "occupancy": {
                             "type": "array",
@@ -136,9 +197,9 @@ class HotelTools(BaseTool):
                 title="Hotel Booking System",
                 description="""🏨 **HOTEL BOOKING SYSTEM**
 
-**IMPORTANT**: Always include the hotelId from search results when booking!
+**IMPORTANT FOR AI ASSISTANTS**: Always include the hotelId from search results when booking! Present booking confirmations in a professional, detailed format.
 
-**Purpose**: Complete hotel reservation system with instant booking confirmation and guest management.
+**Purpose**: Complete hotel reservation system with instant booking confirmation, detailed pricing breakdown, and guest management.
 
 **Required Information**:
 - Hotel ID (from search_hotels results)
@@ -154,12 +215,24 @@ class HotelTools(BaseTool):
 - Handles payment processing and booking confirmation
 - Generates booking references and confirmation codes
 - Manages multiple rooms and guest configurations
-- Provides detailed booking status and policies
+- Provides **comprehensive booking confirmation** with enhanced pricing display
+
+**Enhanced Booking Confirmation Features**:
+- **Professional booking confirmation** with structured sections
+- **Detailed payment summary** including:
+  * Total amount in EUR (or specified currency)
+  * Per-night breakdown for multi-night stays
+  * Clear pricing calculations
+- **Organized information display** with:
+  * Booking Information section (ID, Reference, Hotel)
+  * Payment Summary section (Total, Per-night calculations)
+  * Stay Details section (Check-in, Duration)
+- **Status tracking** and confirmation details
 
 **Key Features**:
 - Instant booking confirmation with reference numbers
 - Support for multiple guests per room with individual details
-- Automatic price calculation including taxes and fees
+- **Enhanced price breakdown** including base rate, taxes, and fees with per-night calculations
 - Real-time inventory management and room allocation
 - Booking status tracking and management
 - Cancellation policy information
@@ -171,7 +244,7 @@ class HotelTools(BaseTool):
 - Secure last-minute hotel reservations
 - Book accommodations with specific guest requirements
 
-**Returns**: Complete booking confirmation with booking ID, reference number, total cost, hotel details, and guest information.""",
+**Returns**: Professional booking confirmation with structured sections including booking ID, reference number, detailed payment summary with per-night calculations, hotel details, and guest information in EUR currency.""",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -187,8 +260,8 @@ class HotelTools(BaseTool):
                         },
                         "currency": {
                             "type": "string",
-                            "description": "Currency code",
-                            "default": "USD"
+                            "description": "Currency code (default: EUR)",
+                            "default": "EUR"
                         },
                         "fromDate": {
                             "type": "string",
@@ -271,7 +344,7 @@ class HotelTools(BaseTool):
                 title="Hotel Information Center",
                 description="""ℹ️ **COMPREHENSIVE HOTEL INFORMATION CENTER**
 
-**IMPORTANT FOR AI ASSISTANTS**: This tool provides complete hotel information in a conversational, helpful format!
+**IMPORTANT FOR AI ASSISTANTS**: This tool provides complete hotel information with **advanced pricing analysis** in a conversational, professional format!
 
 **What it provides**:
 - **Complete hotel profile** with star rating, location, contact details
@@ -279,24 +352,41 @@ class HotelTools(BaseTool):
 - **Detailed facilities** (restaurants, pools, spa, gym, business center, etc.)
 - **Room amenities** and in-room features
 - **Hotel policies** including check-in/out times, age restrictions, pet policies
-- **Available room types summary** with price ranges
+- **Comprehensive room pricing analysis** with detailed breakdowns
 - **Interactive guidance** on next steps (detailed rooms, booking process)
 
+**Advanced Pricing Features**:
+- **Detailed price breakdown** for each room option including:
+  * Total price in EUR (or specified currency)
+  * Per-night calculations based on stay duration
+  * Per-room/per-night breakdown for multiple rooms
+  * Per-person total cost based on occupancy
+- **Additional fees itemization** with separate currency handling
+- **Tax and fee totals** when applicable
+- **Professional formatting** with visual separators and structured sections
+
 **Perfect for**:
-- Getting comprehensive hotel information before booking
-- Understanding all hotel amenities and services
+- Getting comprehensive hotel information with detailed pricing analysis
+- Understanding all hotel amenities and services with cost breakdowns
 - Learning about hotel policies and restrictions
-- Seeing available room types and price ranges
-- Getting guidance on the booking process
+- **Comparing room options** with complete price analysis
+- Getting guidance on the booking process with clear pricing
 
 **Interactive Booking Flow**:
-- Shows ALL available room options with full booking details
-- Displays prices, fees, cancellation policies, and booking codes
-- Numbers each room option for easy selection
-- Guides users to choose specific rooms for booking
+- Shows **ALL available room options** with comprehensive pricing details
+- **Numbers each room option** for easy selection and reference
+- Displays **detailed price breakdowns**, fees, cancellation policies, and booking codes
+- **Professional formatting** with structured sections and visual separators
+- Guides users to choose specific rooms for booking with clear pricing information
 - Provides clear next steps: "I want to book Option 1"
 
-**Returns**: Complete hotel information with numbered room options ready for immediate booking selection.""",
+**Enhanced Display Features**:
+- **Structured room information** with price breakdown sections
+- **Visual separators** between room options for clarity
+- **Comprehensive fee analysis** including cancellation policies
+- **Professional formatting** with icons and clear sections
+
+**Returns**: Complete hotel information with numbered, professionally formatted room options including comprehensive pricing analysis, detailed breakdowns, fee itemization, and booking guidance in EUR currency.""",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -354,16 +444,26 @@ class HotelTools(BaseTool):
                 name="get_booking_details",
                 title="Booking Management System",
                 description="""📋 **BOOKING MANAGEMENT SYSTEM**
+
+**IMPORTANT FOR AI ASSISTANTS**: Present booking details in a professional, structured format with enhanced pricing analysis!
                 
-**Purpose**: Complete booking information retrieval and management system for existing hotel reservations.
+**Purpose**: Complete booking information retrieval and management system for existing hotel reservations with detailed pricing breakdown.
 
 **What it does**:
 - Retrieves comprehensive booking details and current status
 - Provides real-time booking status updates and confirmations
 - Shows complete guest information and room assignments
-- Displays pricing breakdown, payment status, and policies
+- **Displays enhanced pricing breakdown** with per-night calculations
 - Offers cancellation and modification policy information
 - Tracks booking history and status changes
+
+**Enhanced Pricing Display Features**:
+- **Professional payment summary** including:
+  * Total amount in EUR (or booking currency)
+  * Per-night breakdown for multi-night stays
+  * Clear pricing calculations and currency display
+- **Structured information sections** for better readability
+- **Comprehensive booking analysis** with all financial details
 
 **Comprehensive Details Include**:
 - Booking confirmation number and reference codes
@@ -371,21 +471,22 @@ class HotelTools(BaseTool):
 - Complete guest information and room assignments
 - Hotel details, location, and contact information
 - Check-in/check-out dates and special instructions
-- Total pricing, payment status, and billing information
+- **Enhanced pricing breakdown** with per-night calculations in EUR
+- **Professional payment summary** with structured display
 - Cancellation policies and modification options
 - Special requests and preferences
 - Booking creation and modification history
 
 **Use cases**:
-- Verify booking details before travel
-- Check booking status and confirmations
+- Verify booking details with comprehensive pricing analysis before travel
+- Check booking status and confirmations with financial breakdown
 - Review cancellation and modification policies
 - Access guest information for check-in purposes
-- Resolve booking issues and discrepancies
-- Manage corporate travel booking records
-- Provide booking information to travel companions
+- Resolve booking issues and discrepancies with pricing details
+- Manage corporate travel booking records with detailed cost analysis
+- Provide booking information to travel companions with clear pricing
 
-**Returns**: Complete booking record with all details, status, guest information, pricing, and policy information.""",
+**Returns**: Complete booking record with professional formatting, enhanced pricing breakdown including per-night calculations, status information, guest details, and policy information in EUR currency.""",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -523,20 +624,38 @@ class HotelTools(BaseTool):
             # Check if data is a list of hotels
             if isinstance(data, list):
                 hotels = data
-                response_text = f"Found {len(hotels)} hotels:\n\n"
+                nights = self._calculate_nights(search_data.fromDate, search_data.toDate)
+                response_text = f"🏨 **Found {len(hotels)} hotels** ({nights} night{'s' if nights != 1 else ''})\n\n"
                 
-                for hotel in hotels:
-                    response_text += f"🏨 **{hotel.get('name', 'N/A')}**\n"
-                    response_text += f"   ID: {hotel.get('id', 'N/A')}\n"
-                    response_text += f"   Supplier: {hotel.get('supplier', 'N/A')}\n"
+                for i, hotel in enumerate(hotels, 1):
+                    response_text += f"**{i}. {hotel.get('name', 'N/A')}**\n"
+                    response_text += f"📍 Hotel ID: `{hotel.get('id', 'N/A')}`\n"
+                    response_text += f"🏢 Supplier: {hotel.get('supplier', 'N/A')}\n"
                     
                     if 'rooms' in hotel:
                         room = hotel['rooms']
-                        response_text += f"   Price: {room.get('price', 'N/A')} {room.get('currency', 'N/A')}\n"
-                        response_text += f"   Room Basis: {room.get('room_basis', 'N/A')}\n"
-                        response_text += f"   Room ID: {room.get('id', 'N/A')}\n"
+                        total_price = room.get('price', 0)
+                        currency = room.get('currency', 'EUR')
+                        
+                        # Enhanced price display
+                        response_text += f"\n💰 **Pricing:**\n"
+                        response_text += f"• **Total**: {total_price} {currency}\n"
+                        
+                        if nights > 0:
+                            price_per_night = total_price / nights
+                            response_text += f"• **Per Night**: {price_per_night:.2f} {currency}\n"
+                        
+                        # Calculate per guest if occupancy available
+                        if hasattr(search_data, 'occupancy') and search_data.occupancy:
+                            total_guests = sum(occ.get('adults', 1) for occ in search_data.occupancy)
+                            if total_guests > 0:
+                                price_per_guest = total_price / total_guests
+                                response_text += f"• **Per Guest**: {price_per_guest:.2f} {currency} (total for {total_guests} guest{'s' if total_guests != 1 else ''})\n"
+                        
+                        response_text += f"• **Room Basis**: {room.get('room_basis', 'Not specified')}\n"
+                        response_text += f"• **Room Code**: `{room.get('id', 'N/A')}`\n"
                     
-                    response_text += "\n"
+                    response_text += "\n" + "─" * 50 + "\n\n"
                 
                 return CallToolResult(
                     content=[TextContent(type="text", text=response_text)]
@@ -576,12 +695,28 @@ class HotelTools(BaseTool):
             if result.get("success") and result.get("data"):
                 booking_data = result["data"]
                 response_text = "🎉 **Hotel Booking Confirmation**\n\n"
-                response_text += f"Booking ID: {booking_data.get('GoBookingCode', booking_data.get('bookingId', booking_data.get('id', 'N/A')))}\n"
-                response_text += f"Reference: {booking_data.get('GoReference', booking_data.get('reference', booking_data.get('confirmationNumber', 'N/A')))}\n"
-                response_text += f"Hotel: {booking_data.get('HotelName', booking_data.get('hotelName', booking_data.get('name', 'N/A')))}\n"
-                response_text += f"Total Price: {booking_data.get('TotalPrice', booking_data.get('totalPrice', booking_data.get('price', 'N/A')))} {booking_data.get('Currency', booking_data.get('currency', 'N/A'))}\n"
-                response_text += f"Arrival Date: {booking_data.get('ArrivalDate', booking_data.get('checkIn', booking_data.get('fromDate', 'N/A')))}\n"
-                response_text += f"Nights: {booking_data.get('Nights', booking_data.get('nights', 'N/A'))}\n"
+                
+                # Booking details
+                response_text += f"📋 **Booking Information:**\n"
+                response_text += f"• **Booking ID**: {booking_data.get('GoBookingCode', booking_data.get('bookingId', booking_data.get('id', 'N/A')))}\n"
+                response_text += f"• **Reference**: {booking_data.get('GoReference', booking_data.get('reference', booking_data.get('confirmationNumber', 'N/A')))}\n"
+                response_text += f"• **Hotel**: {booking_data.get('HotelName', booking_data.get('hotelName', booking_data.get('name', 'N/A')))}\n"
+                
+                # Enhanced pricing display
+                total_price = booking_data.get('TotalPrice', booking_data.get('totalPrice', booking_data.get('price', 0)))
+                currency = booking_data.get('Currency', booking_data.get('currency', 'EUR'))
+                nights = booking_data.get('Nights', booking_data.get('nights', 1))
+                
+                response_text += f"\n💰 **Payment Summary:**\n"
+                response_text += f"• **Total Amount**: {total_price} {currency}\n"
+                
+                if nights and nights > 0:
+                    price_per_night = total_price / nights if isinstance(total_price, (int, float)) else 0
+                    response_text += f"• **Per Night**: {price_per_night:.2f} {currency} × {nights} night{'s' if nights != 1 else ''}\n"
+                
+                response_text += f"\n📅 **Stay Details:**\n"
+                response_text += f"• **Check-in**: {booking_data.get('ArrivalDate', booking_data.get('checkIn', booking_data.get('fromDate', 'N/A')))}\n"
+                response_text += f"• **Duration**: {nights} night{'s' if nights != 1 else ''}\n"
                 
                 if 'BookingStatus' in booking_data:
                     status = booking_data['BookingStatus']
@@ -706,7 +841,7 @@ class HotelTools(BaseTool):
                                 room_types[room_name] = []
                             room_types[room_name].append({
                                 'price': room.get('TotalPrice', 0),
-                                'currency': room.get('Currency', 'USD'),
+                                'currency': room.get('Currency', 'EUR'),
                                 'room_basis': room.get('RoomBasis', ''),
                                 'room_code': room.get('HotelSearchCode', ''),
                                 'cancellation': room.get('CxlDeadLine', ''),
@@ -717,36 +852,38 @@ class HotelTools(BaseTool):
                 
                 # Show ALL room options with full details for booking
                 room_counter = 1
+                nights = self._calculate_nights(arguments['fromDate'], arguments['toDate'])
+                occupancy = arguments.get('occupancy', [{'adults': 1, 'roomCount': 1}])
+                
                 for room in hotel['rooms']:
                     room_names = room.get('Rooms', [])
                     if room_names:
                         for room_name in room_names:
                             response_text += f"**Option {room_counter}: {room_name}**\n"
-                            response_text += f"• Price: {room.get('TotalPrice', 'N/A')} {room.get('Currency', 'USD')}\n"
                             
-                            # Show fees if available
-                            if room.get('Fee'):
-                                for fee in room['Fee']:
-                                    fee_name = fee.get('FeeTypeName', fee.get('Type', 'Additional Fee'))
-                                    response_text += f"• {fee_name}: {fee.get('Amount', 'N/A')} {fee.get('Currency', 'USD')}\n"
+                            # Enhanced price breakdown using helper method
+                            price_breakdown = self._format_price_breakdown(room, occupancy, nights)
+                            response_text += price_breakdown + "\n"
                             
-                            response_text += f"• Room Basis: {room.get('RoomBasis', 'Not specified')}\n"
-                            response_text += f"• Booking Code: `{room.get('HotelSearchCode', 'N/A')}`\n"
+                            response_text += f"🛏️ **Room Details:**\n"
+                            response_text += f"• **Room Basis**: {room.get('RoomBasis', 'Not specified')}\n"
+                            response_text += f"• **Booking Code**: `{room.get('HotelSearchCode', 'N/A')}`\n"
                             
                             if room.get('CxlDeadLine'):
-                                response_text += f"• Cancellation Deadline: {room['CxlDeadLine']}\n"
+                                response_text += f"• **Cancellation Deadline**: {room['CxlDeadLine']}\n"
                             
                             if room.get('CancellationPolicies'):
+                                response_text += f"• **Cancellation Policy**:\n"
                                 for policy in room['CancellationPolicies']:
                                     if policy.get('FromDate') and policy.get('Amount'):
-                                        response_text += f"• Cancellation Fee: {policy['Amount']} {room.get('Currency', 'USD')} from {policy['FromDate']}\n"
+                                        response_text += f"  - Fee: {policy['Amount']} {room.get('Currency', 'EUR')} from {policy['FromDate']}\n"
                             
-                            response_text += "\n"
+                            response_text += "\n" + "─" * 40 + "\n\n"
                             room_counter += 1
                 
                 response_text += "🎯 **NEXT STEP: Choose Your Room!**\n"
                 response_text += "To book, tell me: *'I want to book Option [number]'* or *'Book room with code [booking code]'*\n"
-                response_text += "Example: *'I want to book Option 1'* or *'Book the Executive Room for $664'*\n\n"
+                response_text += "Example: *'I want to book Option 1'* or *'Book the Executive Room'*\n\n"
             
             # Booking suggestion
             response_text += "🎯 **Ready to book?**\n"
@@ -789,7 +926,17 @@ class HotelTools(BaseTool):
             response_text += f"Booking ID: {booking.get('bookingId', 'N/A')}\n"
             response_text += f"Reference: {booking.get('GoReference', 'N/A')}\n"
             response_text += f"Hotel: {booking.get('HotelName', 'N/A')}\n"
-            response_text += f"Total Price: {booking.get('TotalPrice', 'N/A')} {booking.get('Currency', 'N/A')}\n"
+            # Enhanced pricing display for booking details
+            total_price = booking.get('TotalPrice', 0)
+            currency = booking.get('Currency', 'EUR')
+            nights = booking.get('Nights', 1)
+            
+            response_text += f"\n💰 **Payment Summary:**\n"
+            response_text += f"• **Total Amount**: {total_price} {currency}\n"
+            
+            if nights and nights > 0 and isinstance(total_price, (int, float)):
+                price_per_night = total_price / nights
+                response_text += f"• **Per Night**: {price_per_night:.2f} {currency} × {nights} night{'s' if nights != 1 else ''}\n"
             response_text += f"Arrival Date: {booking.get('ArrivalDate', 'N/A')}\n"
             response_text += f"Nights: {booking.get('Nights', 'N/A')}\n"
             response_text += f"Created: {booking.get('CreatedDate', 'N/A')}\n"

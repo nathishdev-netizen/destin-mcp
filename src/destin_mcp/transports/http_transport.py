@@ -71,7 +71,7 @@ class MCPHTTPTransport:
                     "tools": True,
                     "resources": True,
                     "prompts": True,
-                    "logging": False
+                    "logging": True
                 },
                 "endpoints": {
                     "mcp": "/mcp-v1",
@@ -179,6 +179,13 @@ class MCPHTTPTransport:
                     result = await self._handle_list_resources(params)
                 elif method == "prompts/list":
                     result = await self._handle_list_prompts(params)
+                elif method == "logging/setLevel":
+                    # Handle logging level setting
+                    level = params.get("level", "info")
+                    result = {"level": level}
+                elif method.startswith("notifications/"):
+                    # Handle all notifications with empty response
+                    return Response(status_code=200, content='{"jsonrpc": "2.0", "result": {}}', media_type="application/json")
                 else:
                     raise HTTPException(status_code=400, detail=f"Unknown method: {method}")
                 
