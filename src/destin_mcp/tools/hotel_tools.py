@@ -269,36 +269,34 @@ class HotelTools(BaseTool):
             Tool(
                 name="get_hotel_info",
                 title="Hotel Information Center",
-                description="""ℹ️ **HOTEL INFORMATION CENTER**
-                
-**Purpose**: Comprehensive hotel information system providing detailed property data, amenities, and policies.
+                description="""ℹ️ **COMPREHENSIVE HOTEL INFORMATION CENTER**
 
-**What it does**:
-- Retrieves complete hotel profiles with detailed descriptions
-- Provides comprehensive amenity and facility listings
-- Shows room types, configurations, and features
-- Displays hotel policies, check-in/out times, and restrictions
-- Includes location information and nearby attractions
-- Offers pricing context and value propositions
+**IMPORTANT FOR AI ASSISTANTS**: This tool provides complete hotel information in a conversational, helpful format!
 
-**Detailed Information Includes**:
-- Hotel description and property overview
-- Complete facility listings (pool, gym, spa, restaurants, etc.)
-- Room amenities and configurations
-- Service offerings and guest experiences
-- Location details and accessibility information
-- Hotel policies and important notices
-- Photo galleries and virtual tours (when available)
+**What it provides**:
+- **Complete hotel profile** with star rating, location, contact details
+- **Full property description** with amenities and features
+- **Detailed facilities** (restaurants, pools, spa, gym, business center, etc.)
+- **Room amenities** and in-room features
+- **Hotel policies** including check-in/out times, age restrictions, pet policies
+- **Available room types summary** with price ranges
+- **Interactive guidance** on next steps (detailed rooms, booking process)
 
-**Use cases**:
-- Research hotel amenities before booking decisions
-- Compare facility offerings between properties
-- Understand hotel policies and restrictions
-- Evaluate location and accessibility features
-- Assess value proposition and guest experience quality
-- Gather information for travel planning and recommendations
+**Perfect for**:
+- Getting comprehensive hotel information before booking
+- Understanding all hotel amenities and services
+- Learning about hotel policies and restrictions
+- Seeing available room types and price ranges
+- Getting guidance on the booking process
 
-**Returns**: Comprehensive hotel profile with descriptions, amenities, facilities, policies, and location details.""",
+**Interactive Booking Flow**:
+- Shows ALL available room options with full booking details
+- Displays prices, fees, cancellation policies, and booking codes
+- Numbers each room option for easy selection
+- Guides users to choose specific rooms for booking
+- Provides clear next steps: "I want to book Option 1"
+
+**Returns**: Complete hotel information with numbered room options ready for immediate booking selection.""",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -571,24 +569,56 @@ class HotelTools(BaseTool):
         
         # Format response
         if result:
-            response_text = "🎉 **Hotel Booking Confirmation**\n\n"
-            response_text += f"Booking ID: {result.get('GoBookingCode', 'N/A')}\n"
-            response_text += f"Reference: {result.get('GoReference', 'N/A')}\n"
-            response_text += f"Hotel: {result.get('HotelName', 'N/A')}\n"
-            response_text += f"Total Price: {result.get('TotalPrice', 'N/A')} {result.get('Currency', 'N/A')}\n"
-            response_text += f"Arrival Date: {result.get('ArrivalDate', 'N/A')}\n"
-            response_text += f"Nights: {result.get('Nights', 'N/A')}\n"
+            # Log the actual response structure for debugging
+            logger.debug(f"Booking API response: {result}")
             
-            if 'BookingStatus' in result:
-                status = result['BookingStatus']
-                response_text += f"Status: {status.get('status', 'N/A')}\n"
-            
-            return CallToolResult(
-                content=[TextContent(type="text", text=response_text)]
-            )
+            # Check if the response indicates success
+            if result.get("success") and result.get("data"):
+                booking_data = result["data"]
+                response_text = "🎉 **Hotel Booking Confirmation**\n\n"
+                response_text += f"Booking ID: {booking_data.get('GoBookingCode', booking_data.get('bookingId', booking_data.get('id', 'N/A')))}\n"
+                response_text += f"Reference: {booking_data.get('GoReference', booking_data.get('reference', booking_data.get('confirmationNumber', 'N/A')))}\n"
+                response_text += f"Hotel: {booking_data.get('HotelName', booking_data.get('hotelName', booking_data.get('name', 'N/A')))}\n"
+                response_text += f"Total Price: {booking_data.get('TotalPrice', booking_data.get('totalPrice', booking_data.get('price', 'N/A')))} {booking_data.get('Currency', booking_data.get('currency', 'N/A'))}\n"
+                response_text += f"Arrival Date: {booking_data.get('ArrivalDate', booking_data.get('checkIn', booking_data.get('fromDate', 'N/A')))}\n"
+                response_text += f"Nights: {booking_data.get('Nights', booking_data.get('nights', 'N/A'))}\n"
+                
+                if 'BookingStatus' in booking_data:
+                    status = booking_data['BookingStatus']
+                    response_text += f"Status: {status.get('status', 'N/A')}\n"
+                elif 'status' in booking_data:
+                    response_text += f"Status: {booking_data['status']}\n"
+                
+                return CallToolResult(
+                    content=[TextContent(type="text", text=response_text)]
+                )
+            else:
+                # Handle error responses or unexpected structure
+                error_msg = "Booking failed."
+                if isinstance(result, dict):
+                    if "message" in result:
+                        error_msg += f" Error: {result['message']}"
+                    elif "error" in result:
+                        error_msg += f" Error: {result['error']}"
+                    elif "Message" in result:
+                        error_msg += f" Error: {result['Message']}"
+                    else:
+                        # Show the actual response structure for debugging
+                        response_text = f"🔍 **Debug Information**\n\n"
+                        response_text += f"API Response Structure:\n```json\n{result}\n```\n\n"
+                        response_text += "The booking API returned an unexpected response format. "
+                        response_text += "Please check the API documentation or contact support."
+                        
+                        return CallToolResult(
+                            content=[TextContent(type="text", text=response_text)]
+                        )
+                
+                return CallToolResult(
+                    content=[TextContent(type="text", text=error_msg)]
+                )
         else:
             return CallToolResult(
-                content=[TextContent(type="text", text="Booking failed. Please try again.")]
+                content=[TextContent(type="text", text="Booking failed. No response from API.")]
             )
     
     async def _get_hotel_info(self, arguments: Dict[str, Any]) -> CallToolResult:
@@ -611,20 +641,125 @@ class HotelTools(BaseTool):
         if result.get("success") and result.get("data"):
             hotel = result["data"]
             response_text = f"🏨 **{hotel.get('name', 'N/A')}**\n\n"
-            response_text += f"Hotel ID: {hotel.get('id', 'N/A')}\n"
-            response_text += f"Currency: {hotel.get('currency', 'N/A')}\n\n"
             
+            # Basic hotel information
+            response_text += f"📍 **Hotel Details:**\n"
+            response_text += f"• Hotel ID: {hotel.get('id', 'N/A')}\n"
+            response_text += f"• Star Rating: {hotel.get('starRating', 'N/A')} stars\n"
+            response_text += f"• Currency: {hotel.get('currency', 'N/A')}\n"
+            
+            # Location information
+            if 'location' in hotel:
+                location = hotel['location']
+                response_text += f"• Address: {location.get('address', 'N/A')}\n"
+                response_text += f"• City: {location.get('destination', 'N/A')}\n"
+                response_text += f"• Country: {location.get('country', 'N/A')}\n"
+            
+            if hotel.get('telephone'):
+                response_text += f"• Phone: {hotel['telephone']}\n"
+            
+            response_text += "\n"
+            
+            # Hotel description
             if 'description' in hotel:
-                description = hotel['description'][:500] + "..." if len(hotel['description']) > 500 else hotel['description']
-                response_text += f"**Description:**\n{description}\n\n"
+                # Clean up HTML tags and show full description
+                description = hotel['description'].replace('<p>', '').replace('</p>', '\n').replace('<b>', '**').replace('</b>', '**').replace('<br/>', '\n')
+                response_text += f"📝 **Hotel Description:**\n{description}\n\n"
             
+            # Hotel facilities
             if 'HotelFacilities' in hotel:
                 facilities = hotel['HotelFacilities'].replace('<BR />', '\n• ')
-                response_text += f"**Hotel Facilities:**\n• {facilities}\n\n"
+                response_text += f"🏢 **Hotel Facilities:**\n• {facilities}\n\n"
             
+            # Room facilities
             if 'RoomFacilities' in hotel:
                 room_facilities = hotel['RoomFacilities'].replace('<BR />', '\n• ')
-                response_text += f"**Room Facilities:**\n• {room_facilities}\n"
+                response_text += f"🛏️ **Room Amenities:**\n• {room_facilities}\n\n"
+            
+            # Check-in/out policies
+            if 'policy' in hotel and hotel['policy']:
+                policy = hotel['policy']
+                response_text += f"📋 **Hotel Policies:**\n"
+                if policy.get('checkinFrom'):
+                    response_text += f"• Check-in: {policy['checkinFrom']}\n"
+                if policy.get('checkoutTo'):
+                    response_text += f"• Check-out: {policy['checkoutTo']}\n"
+                
+                # Extra info
+                if 'extraInfoList' in policy:
+                    for info in policy['extraInfoList']:
+                        if info.get('description') and info.get('value'):
+                            response_text += f"• {info['description']}: {info['value']}\n"
+                        elif info.get('description'):
+                            response_text += f"• {info['description']}\n"
+                response_text += "\n"
+            
+            # Available rooms summary
+            if 'rooms' in hotel and hotel['rooms']:
+                # Group rooms by type
+                room_types = {}
+                for room in hotel['rooms']:
+                    room_names = room.get('Rooms', [])
+                    if room_names:
+                        for room_name in room_names:
+                            if room_name not in room_types:
+                                room_types[room_name] = []
+                            room_types[room_name].append({
+                                'price': room.get('TotalPrice', 0),
+                                'currency': room.get('Currency', 'USD'),
+                                'room_basis': room.get('RoomBasis', ''),
+                                'room_code': room.get('HotelSearchCode', ''),
+                                'cancellation': room.get('CxlDeadLine', ''),
+                                'fees': room.get('Fee', [])
+                            })
+                
+                response_text += f"🛏️ **Available Room Options for Booking ({len(hotel['rooms'])} total options):**\n\n"
+                
+                # Show ALL room options with full details for booking
+                room_counter = 1
+                for room in hotel['rooms']:
+                    room_names = room.get('Rooms', [])
+                    if room_names:
+                        for room_name in room_names:
+                            response_text += f"**Option {room_counter}: {room_name}**\n"
+                            response_text += f"• Price: {room.get('TotalPrice', 'N/A')} {room.get('Currency', 'USD')}\n"
+                            
+                            # Show fees if available
+                            if room.get('Fee'):
+                                for fee in room['Fee']:
+                                    fee_name = fee.get('FeeTypeName', fee.get('Type', 'Additional Fee'))
+                                    response_text += f"• {fee_name}: {fee.get('Amount', 'N/A')} {fee.get('Currency', 'USD')}\n"
+                            
+                            response_text += f"• Room Basis: {room.get('RoomBasis', 'Not specified')}\n"
+                            response_text += f"• Booking Code: `{room.get('HotelSearchCode', 'N/A')}`\n"
+                            
+                            if room.get('CxlDeadLine'):
+                                response_text += f"• Cancellation Deadline: {room['CxlDeadLine']}\n"
+                            
+                            if room.get('CancellationPolicies'):
+                                for policy in room['CancellationPolicies']:
+                                    if policy.get('FromDate') and policy.get('Amount'):
+                                        response_text += f"• Cancellation Fee: {policy['Amount']} {room.get('Currency', 'USD')} from {policy['FromDate']}\n"
+                            
+                            response_text += "\n"
+                            room_counter += 1
+                
+                response_text += "🎯 **NEXT STEP: Choose Your Room!**\n"
+                response_text += "To book, tell me: *'I want to book Option [number]'* or *'Book room with code [booking code]'*\n"
+                response_text += "Example: *'I want to book Option 1'* or *'Book the Executive Room for $664'*\n\n"
+            
+            # Booking suggestion
+            response_text += "🎯 **Ready to book?**\n"
+            response_text += "Use the `book_hotel` tool with:\n"
+            response_text += f"• Hotel ID: `{hotel.get('id')}`\n"
+            response_text += "• Choose a room code from the available options\n"
+            response_text += "• Provide guest details and contact information\n\n"
+            
+            response_text += "📞 **Need more help?** Ask me about:\n"
+            response_text += "• Detailed room options and pricing\n"
+            response_text += "• Booking process and requirements\n"
+            response_text += "• Hotel amenities and services\n"
+            response_text += "• Cancellation policies\n"
             
             return CallToolResult(
                 content=[TextContent(type="text", text=response_text)]

@@ -74,7 +74,7 @@ class MCPHTTPTransport:
                     "logging": False
                 },
                 "endpoints": {
-                    "mcp": "/mcp",
+                    "mcp": "/mcp-v1",
                     "sse": "/sse/{client_id}"
                 }
             }
@@ -107,7 +107,7 @@ class MCPHTTPTransport:
                 "client_id": "destin-mcp-client",
                 "client_secret": "destin-mcp-secret",
                 "client_name": "Destin MCP Server",
-                "redirect_uris": ["https://claude.ai/api/mcp/auth_callback"],
+                "redirect_uris": ["https://claude.ai/api/mcp-v1/auth_callback"],
                 "grant_types": ["authorization_code"],
                 "response_types": ["code"],
                 "token_endpoint_auth_method": "client_secret_post"
@@ -152,7 +152,7 @@ class MCPHTTPTransport:
             """Health check endpoint."""
             return {"status": "healthy", "transport": "mcp-http"}
         
-        @self.app.post("/mcp")
+        @self.app.post("/mcp-v1")
         async def handle_mcp_request(request: Request):
             """Handle MCP JSON-RPC requests."""
             try:

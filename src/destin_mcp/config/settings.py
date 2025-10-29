@@ -41,7 +41,7 @@ class Settings(BaseSettings):
         description="Logging level"
     )
     debug: bool = Field(
-        default=False,
+        default=True,
         description="Enable debug mode"
     )
     

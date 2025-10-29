@@ -1,0 +1,347 @@
+{
+	"info": {
+		"_postman_id": "f70681c2-77bd-417f-80ed-1a420236bcd1",
+		"name": "Travel-Tech-Suppliers",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14365295"
+	},
+	"item": [
+		{
+			"name": "Search Hotels",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"country\": \"IN\",\n    \"fromDate\": \"yyyy-mm-dd\",\n    \"toDate\": \"yyyy-mm-dd\",\n    \"cityCode\": \"75\",\n    \"sort\": 1,\n    \"currency\": \"USD\",\n    \"occupancy\": [\n        {\n            \"adults\": 2,\n            \"roomCount\": 1\n        },\n        {\n            \"adults\": 1,\n            \"roomCount\": 1,\n            \"childAges\": [\n                9,\n                5\n            ]\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BaseUrl}}/api/hotels/{{supplier}}",
+					"host": [
+						"{{BaseUrl}}"
+					],
+					"path": [
+						"api",
+						"hotels",
+						"{{supplier}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"country\": \"IN\",\n    \"fromDate\": \"yyyy-mm-dd\",\n    \"toDate\": \"yyyy-mm-dd\",\n    \"sort\": 1,\n    \"currency\": \"USD\",\n    \"occupancy\": [\n        {\n            \"adults\": 2,\n            \"roomCount\": 1\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BaseUrl}}/api/hotels/{{supplier}}",
+							"host": [
+								"{{BaseUrl}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"{{supplier}}"
+							]
+						}
+					},
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"description": "",
+							"type": "text"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"count\": 2,\n    \"data\": [\n        {\n            \"supplier\": \"goglobal\",\n            \"id\": 1073381,\n            \"name\": \"THE MOUNT REGENCY\",\n            \"thumbnials\": [\n                \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/a11f7255_b.jpg\"\n            ],\n            \"rooms\": {\n                \"id\": \"26323492/5862457869987957513/575\",\n                \"currency\": \"EUR\",\n                \"price\": 30,\n                \"taxesFees\": 143.82,\n                \"room_basis\": \"ROOM ONLY\"\n            }\n        },\n        {\n            \"supplier\": \"goglobal\",\n            \"id\": 1171192,\n            \"name\": \"OLIVE SERVICED APARTMENTS\",\n            \"thumbnials\": [\n                \"https://i.travelapi.com/lodging/25000000/24010000/24006200/24006191/9a63095f_b.jpg\"\n            ],\n            \"rooms\": {\n                \"id\": \"26483460/5862457869987957513/1352\",\n                \"currency\": \"EUR\",\n                \"price\": 30,\n                \"taxesFees\": 142.36,\n                \"room_basis\": \"BED AND BREAKFAST\"\n            }\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Hotel Booking",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"country\": \"IN\",\n    \"currency\": \"USD\",\n    \"fromDate\": \"yyyy-mm-dd\",\n    \"toDate\": \"yyyy-mm-dd\",\n    \"roomCode\": {{roomCode}},\n    \"rooms\": [\n        {\n            \"adults\": 2,\n            \"guests\": [\n                {\n                    \"title\": \"MRS.\",\n                    \"firstName\": \"JAYNE\",\n                    \"lastName\": \"DOE\"\n                },\n                {\n                    \"title\": \"MR.\",\n                    \"firstName\": \"JIM\",\n                    \"lastName\": \"DOE\"\n                }\n            ]\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BaseUrl}}/api/hotels/{{supplier}}/booking",
+					"host": [
+						"{{BaseUrl}}"
+					],
+					"path": [
+						"api",
+						"hotels",
+						"{{supplier}}",
+						"booking"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"country\": \"IN\",\n    \"currency\": \"USD\",\n    \"fromDate\": \"yyyy-mm-dd\",\n    \"toDate\": \"yyyy-mm-dd\",\n    \"roomCode\": {{roomCode}},\n    \"rooms\": [\n        {\n            \"adults\": 2,\n            \"guests\": [\n                {\n                    \"title\": \"MRS.\",\n                    \"firstName\": \"JAYNE\",\n                    \"lastName\": \"DOE\"\n                },\n                {\n                    \"title\": \"MR.\",\n                    \"firstName\": \"JIM\",\n                    \"lastName\": \"DOE\"\n                }\n            ]\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BaseUrl}}/api/hotels/{{supplier}}/booking",
+							"host": [
+								"{{BaseUrl}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"{{supplier}}",
+								"booking"
+							]
+						}
+					},
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"description": "",
+							"type": "text"
+						}
+					],
+					"cookie": [],
+					"body": "{\n  \"GoBookingCode\": \"29489952\", //bookingId\n  \"GoReference\": \"GO27339518-29489952-A(INT)\",\n  \"ClientBookingCode\": \"Transaction-234\",\n  \"BookingStatus\": {\n    \"status\": \"Cancelled\",\n    \"desc\": \"Booking canceled FOC\"\n  },\n  \"TotalPrice\": \"2043\",\n  \"Currency\": \"USD\",\n  \"HotelId\": \"96773\",\n  \"HotelName\": \"ATLANTIS THE PALM\",\n  \"HotelSearchCode\": \"12636704/3935303191727367845/66\",\n  \"RoomType\": \"\",\n  \"RoomBasis\": \"BED AND BREAKFAST\",\n  \"ArrivalDate\": \"2025-12-06\",\n  \"CancellationDeadline\": \"2025-11-21\",\n  \"Nights\": \"3\",\n  \"NoAlternativeHotel\": \"1\",\n  \"Leader\": {\n    \"LeaderPersonID\": \"1\"\n  },\n  \"Rooms\": [\n    {\n      \"RoomType\": {\n        \"Adults\": \"2\",\n        \"Room\": {\n          \"RoomID\": \"1\",\n          \"Category\": \"Palm King Room\",\n          \"PersonName\": [\n            {\n              \"PersonID\": \"1\",\n              \"Title\": \"MR.\",\n              \"FirstName\": \"SABRESH\",\n              \"LastName\": \"L\"\n            },\n            {\n              \"PersonID\": \"2\",\n              \"Title\": \"MR.\",\n              \"FirstName\": \"SAGAR\",\n              \"LastName\": \"GURAV\"\n            }\n          ]\n        }\n      }\n    }\n  ],\n  \"Preferences\": {\n    \"AdjoiningRooms\": \"\",\n    \"ConnectingRooms\": \"\",\n    \"LateArrival\": \"\"\n  },\n  \"Remark\": \"CHECK-IN TIME IS AT 3:00 PM. IF YOU FAIL TO CHECK-IN FOR THIS RESERVATION, OR IF YOU CANCEL OR CHANGE THIS RESERVATION AFTER CXL DEADLINE, YOU MAY INCUR PENALTY CHARGES AT THE DISCRETION OF THE HOTEL OF UP TO 100% OF THE BOOKING VALUE, UNLESS OTHERWISE STATED. CXL charges apply as follows: STARTING 21/11/2025 CXL-PENALTY FEE IS 100.00% OF BOOKING PRICE. STARTING 05/12/2025 CXL-PENALTY FEE IS 100.00% OF BOOKING PRICE., It includes: Bed & breakfast. Experience views of the glittering Dubai skyline at our contemporary, sleek and spacious rooms inspired by the ocean. Inclusions: • Complimentary access to Aquaventure Waterpark • Complimentary entrance to The Lost Chambers Aquarium • One Explorers Club or The Zone session per stay • Extraordinary views of the Arabian Sea • Enjoy preferential rates on marine animal experiences • Complimentary access to the AWAKEN Fitness Centre RatePlan Info [WHL1BARBBE2]: WHL1BARBBE2 - WHL - BB - VCC - TAX EXCLUSIVE - BAR20: All room rates are inclusive of 10% Service Charge and 7% Dubai Municipality Fee and 5% VAT. A Tourism Dirham Fee of AED 20 per bedroom per night is applicable. Rate Code: WHL1BARBBE2 Tourist City taxes to be paid on the spot, if any. Note that some hotels may require cash or credit card deposit as guarantee. This will be returned on departure minus any deduction incurred during the stay. CXL charges apply as follows: STARTING 21/11/2025 CXL-PENALTY FEE IS 100.00% OF BOOKING PRICE. STARTING 05/12/2025 CXL-PENALTY FEE IS 100.00% OF BOOKING PRICE. If you fail to check-in for this reservation, or if you cancel or change this reservation after CXL DEADLINE, you may incur penalty charges at the discretion of the hotel of up to 100% of the booking value, unless otherwise stated. Check-in time is at 3:00 pm. Tourist City taxes to be paid on the spot, if any. Note that some hotels may require cash or credit card deposit as guarantee. This will be returned on departure minus any deduction incurred during the stay.\"\n}\n"
+				}
+			]
+		},
+		{
+			"name": "Hotel Information",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"country\": \"IN\",\n    \"fromDate\": \"yyyy-mm-dd\",\n    \"toDate\": \"yyyy-mm-dd\",\n    \"sort\": 1,\n    \"currency\": \"USD\",\n    \"occupancy\": [\n        {\n            \"adults\": 2,\n            \"roomCount\": 1\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BaseUrl}}/api/hotels/{{supplier}}/{{id}}",
+					"host": [
+						"{{BaseUrl}}"
+					],
+					"path": [
+						"api",
+						"hotels",
+						"{{supplier}}",
+						"{{id}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BaseUrl}}/api/hotels/{{supplier}}/{{id}}",
+							"host": [
+								"{{BaseUrl}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"{{supplier}}",
+								"{{id}}"
+							]
+						}
+					},
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"description": "",
+							"type": "text"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"data\": {\n        \"id\": \"1073381\",\n        \"name\": \"The Mount Regency\",\n        \"currency\": \"USD\",\n        \"HotelFacilities\": \"ATM<BR />Air conditioning<BR />24-hour reception<BR />Elevator/lift<BR />Smoke-free property<BR />Security guard<BR />Ticket assistance<BR />Express check-in/check-out<BR />Terrace<BR />Upper floors accessible by elevator<BR />Ironing<BR />Laundry<BR />Dry-cleaning<BR />Luggage storage<BR />Wake-up service<BR />Telephone<BR />Breakfast<BR />Breakfast in the room<BR />Restaurant<BR />Free Wi-Fi<BR />Internet access<BR />Car rental<BR />English<BR />Multi-language staff<BR />Tour assistance<BR />Barbecue grill(s)<BR />Barbeque<BR />Beach/pool towels<BR />Pets Not Allowed\",\n        \"RoomFacilities\": \"May include:<BR />Non-smoking rooms<BR />Room service<BR />Cable TV<BR />Shower/Bathtub<BR />Shower<BR />Wardrobe/Closet<BR />Linens<BR />Toiletries\",\n        \"description\": \"A great place to have a rest after an exciting day! Hotel «The Mount Regency» is located in Chennai. This hotel is located 2 km from the city center.,It’s time to have a nice meal! Stop by the restaurant. Free Wi-Fi is available on the territory. Ask for more information when checking in. Get ready for a fun and exciting vacation! Here’s what you will find on the premises: a barbeque area. The tour assistance desk of the hotel will help you book an excursion.,Accessible for guests with disabilities: the elevator helps them to go to the highest floors. There are other services available for the guests of the hotel. For example, a laundry, dry cleaning, an ATM, ironing and car rental. The staff of the hotel speaks English.,The room is warmly decorated and has everything you need to have a rest after a long eventful day. There is a shower. The room equipment depends on its category.,No-show availability: unspecified. No-show day period: unspecified. No-show time: ,Visa support: No information on the Visa support, Number of rooms: 16., Frequency: 50., Voltage: 230., Sockets: Type c: European socket (non-grounded). Type d: English socket. Type m: South African socket.\",\n        \"thumbnails\": [\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/17d10192_b.jpg\",\n                \"Description\": \"Primary image\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/fa5515cb_b.jpg\",\n                \"Description\": \"Lobby\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/cea4e009_b.jpg\",\n                \"Description\": \"Lobby\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/8d2c344d_b.jpg\",\n                \"Description\": \"Reception\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/00ea0e20_b.jpg\",\n                \"Description\": \"Reception\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/a11f7255_b.jpg\",\n                \"Description\": \"Room\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/78392d5b_b.jpg\",\n                \"Description\": \"Room\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/13d749bf_b.jpg\",\n                \"Description\": \"Room\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/c00130b8_b.jpg\",\n                \"Description\": \"Room\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/edf46228_b.jpg\",\n                \"Description\": \"Room\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/805e5592_b.jpg\",\n                \"Description\": \"Room\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/8da1fe0b_b.jpg\",\n                \"Description\": \"Room\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/c2f61ada_b.jpg\",\n                \"Description\": \"Room\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/b84f9f37_b.jpg\",\n                \"Description\": \"Room\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/351f9e25_b.jpg\",\n                \"Description\": \"Room\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/ce0cd59b_b.jpg\",\n                \"Description\": \"Bathroom\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/1d273cc6_b.jpg\",\n                \"Description\": \"Bathroom\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/aaf32e56_b.jpg\",\n                \"Description\": \"Interior\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/c9873118_b.jpg\",\n                \"Description\": \"Interior\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/54684e7b_b.jpg\",\n                \"Description\": \"Interior\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/e51737fd_b.jpg\",\n                \"Description\": \"Interior\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/2ab2e901_b.jpg\",\n                \"Description\": \"Interior\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/142270cd_b.jpg\",\n                \"Description\": \"Interior\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/e1d4cfaa_b.jpg\",\n                \"Description\": \"Interior\"\n            },\n            {\n                \"value\": \"https://i.travelapi.com/lodging/38000000/37930000/37925500/37925472/f3cb29fe_b.jpg\",\n                \"Description\": \"Exterior\"\n            }\n        ],\n        \"rooms\": [\n            {\n                \"HotelSearchCode\": \"26323492/1630224365352760926/0\",\n                \"CxlDeadLine\": \"07/Nov/2025\",\n                \"NonRef\": false,\n                \"Rooms\": [\n                    \"Standard Double Room\"\n                ],\n                \"RoomBasis\": \"ROOM ONLY\",\n                \"Availability\": 1,\n                \"TotalPrice\": 86,\n                \"Currency\": \"USD\",\n                \"Category\": \"3\",\n                \"CancellationPolicies\": [\n                    {\n                        \"Id\": 1,\n                        \"Starting\": \"07/11/2025\",\n                        \"BasedOn\": \"NIGHTS\",\n                        \"Mode\": \"FLAT\",\n                        \"Value\": \"1\"\n                    }\n                ],\n                \"Remark\": \"Bed types are not guaranteed:Standard Double Room - 1 Queen Bed(room for 0 adults )CXL charges apply as follows: STARTING 07/11/2025 CXL-PENALTY FEE IS PRICE OF 1 NIGHTS.\",\n                \"Special\": \"**PACKAGE RATE**, Free WiFi\",\n                \"Preferred\": false,\n                \"Fee\": [\n                    {\n                        \"Type\": \"Other\",\n                        \"Detail\": \"tax_and_service_fee\",\n                        \"Amount\": 359.55,\n                        \"Currency\": \"INR\",\n                        \"Inclusive\": \"Inclusive\"\n                    }\n                ]\n            },\n            {\n                \"HotelSearchCode\": \"26323492/1630224365352760926/1\",\n                \"CxlDeadLine\": \"07/Nov/2025\",\n                \"NonRef\": false,\n                \"Rooms\": [\n                    \"Deluxe Double Room\"\n                ],\n                \"RoomBasis\": \"ROOM ONLY\",\n                \"Availability\": 1,\n                \"TotalPrice\": 99,\n                \"Currency\": \"USD\",\n                \"Category\": \"3\",\n                \"CancellationPolicies\": [\n                    {\n                        \"Id\": 1,\n                        \"Starting\": \"07/11/2025\",\n                        \"BasedOn\": \"NIGHTS\",\n                        \"Mode\": \"FLAT\",\n                        \"Value\": \"1\"\n                    }\n                ],\n                \"Remark\": \"Bed types are not guaranteed:Deluxe Double Room - 1 Queen Bed(room for 0 adults )CXL charges apply as follows: STARTING 07/11/2025 CXL-PENALTY FEE IS PRICE OF 1 NIGHTS.\",\n                \"Special\": \"**PACKAGE RATE**, Free WiFi\",\n                \"Preferred\": false,\n                \"Fee\": [\n                    {\n                        \"Type\": \"Other\",\n                        \"Detail\": \"tax_and_service_fee\",\n                        \"Amount\": 416.8,\n                        \"Currency\": \"INR\",\n                        \"Inclusive\": \"Inclusive\"\n                    }\n                ]\n            }\n        ],\n        \"supplier\": \"goglobal\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Booking Details",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://supplier-apis-for-travel-tech.vercel.app/api/hotels/{{supplier}}/booking/{{bookingId}}",
+					"protocol": "https",
+					"host": [
+						"supplier-apis-for-travel-tech",
+						"vercel",
+						"app"
+					],
+					"path": [
+						"api",
+						"hotels",
+						"{{supplier}}",
+						"booking",
+						"{{bookingId}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BaseUrl}}/api/hotels/{{supplier}}/booking/{{bookingId}}",
+							"host": [
+								"{{BaseUrl}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"{{supplier}}",
+								"booking",
+								"{{bookingId}}"
+							]
+						}
+					},
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"description": "",
+							"type": "text"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"data\": {\n        \"bookingId\": \"29489952\",\n        \"GoReference\": \"GO27339518-29489952-A(INT)\",\n        \"ClientBookingCode\": \"Transaction-234\",\n        \"BookingStatus\": {\n            \"status\": \"Cancelled\",\n            \"desc\": \"Booking canceled FOC\"\n        },\n        \"CreatedDate\": \"2025-10-06 07:33\",\n        \"TotalPrice\": \"2043.00\",\n        \"Currency\": \"USD\",\n        \"HotelId\": \"96773\",\n        \"HotelName\": \"ATLANTIS THE PALM\",\n        \"HotelSearchCode\": \"12636704\",\n        \"CityCode\": \"563\",\n        \"RoomType\": \"\",\n        \"RoomBasis\": \"BED AND BREAKFAST\",\n        \"ArrivalDate\": \"2025-12-06\",\n        \"CancellationDeadline\": \"2025-11-21\",\n        \"Nights\": \"3\",\n        \"NoAlternativeHotel\": \"1\",\n        \"Leader\": {\n            \"value\": \"SABRESH L\",\n            \"LeaderPersonID\": \"1\"\n        },\n        \"Nationality\": \"US\",\n        \"Rooms\": {\n            \"RoomType\": {\n                \"Type\": \"\",\n                \"Adults\": \"2\",\n                \"Room\": {\n                    \"RoomID\": \"1\",\n                    \"Category\": \"Palm King Room\",\n                    \"PersonName\": [\n                        {\n                            \"PersonID\": \"1\",\n                            \"FirstName\": \"SABRESH\",\n                            \"LastName\": \"L\",\n                            \"Title\": \"MR.\"\n                        },\n                        {\n                            \"PersonID\": \"2\",\n                            \"FirstName\": \"SAGAR\",\n                            \"LastName\": \"GURAV\",\n                            \"Title\": \"MR.\"\n                        }\n                    ]\n                }\n            }\n        },\n        \"Remark\": \"CHECK-IN TIME IS AT 3:00 PM.<BR />IF YOU FAIL TO CHECK-IN FOR THIS RESERVATION, OR IF YOU CANCEL OR CHANGE THIS RESERVATION AFTER CXL DEADLINE, YOU MAY INCUR PENALTY CHARGES AT THE DISCRETION OF THE HOTEL OF UP TO 100% OF THE BOOKING VALUE, UNLESS OTHERWISE STATED.CXL charges apply as follows: STARTING 21/11/2025 CXL-PENALTY FEE IS 100.00% OF BOOKING PRICE.<BR />STARTING 05/12/2025 CXL-PENALTY FEE IS 100.00% OF BOOKING PRICE., It includes: Bed\\ufffd&\\ufffdbreakfast<BR />Experience views of the glittering Dubai skyline at our contemporary, sleek and spacious rooms inspired by the ocean.\\n\\nInclusions:\\n<p>•Complimentary access to Aquaventure Waterpark<p>\\n<p>•Complimentary entrance to The Lost Chambers Aquarium<p>\\n<p>•One Explorers Club or The Zone session per stay<p>\\n<p>•Extraordinary views of the Arabian Sea<p>\\n<p>•Enjoy preferential rates on marine animal experiences<p>\\n<p>•Complimentary access to the AWAKEN Fitness Centre<p><BR />RatePlan Info [WHL1BARBBE2]: WHL1BARBBE2 - WHL -  BB - VCC - TAX EXCLUSIVE - BAR20: All room rates are inclusive of 10% Service Charge and 7% Dubai Municipality Fee and 5% VAT. A Tourism Dirham Fee of AED 20 per bedroom per night is applicable.<BR />Rate Code: WHL1BARBBE2<BR />Tourist City taxes to be paid on the spot, if any / Tasse di soggiorno da pagarsi in loco, se previste.<BR />Note that some hotels may require cash or credit card deposit as guarantee. This will be returned on departure minus any deduction incurred during the stay.<BR />Tourist City taxes to be paid on the spot, if any / Tasse di soggiorno da pagarsi in loco, se previste.<BR />Note that some hotels may require cash or credit card deposit as guarantee. This will be returned on departure minus any deduction incurred during the stay.<BR />CXL charges apply as follows: STARTING 21/11/2025 CXL-PENALTY FEE IS 100.00% OF BOOKING PRICE.<BR />STARTING 05/12/2025 CXL-PENALTY FEE IS 100.00% OF BOOKING PRICE.  ,  If you fail to check-in for this reservation, or if you cancel or change this reservation after CXL DEADLINE, you may incur penalty charges at the discretion of the hotel of up to 100% of the booking value, unless otherwise stated.  ,  Check-in time is at 3:00 pm.  ,  Tourist City taxes to be paid on the spot, if any / Tasse di soggiorno da pagarsi in loco, se previste.<BR />Note that some hotels may require cash or credit card deposit as guarantee. This will be returned on departure minus any deduction incurred during the stay.<BR />\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "List suppliers",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BaseUrl}}/api/hotels/suppliers",
+					"host": [
+						"{{BaseUrl}}"
+					],
+					"path": [
+						"api",
+						"hotels",
+						"suppliers"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "200",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BaseUrl}}/api/hotels/suppliers",
+							"host": [
+								"{{BaseUrl}}"
+							],
+							"path": [
+								"api",
+								"hotels",
+								"suppliers"
+							]
+						}
+					},
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"description": "",
+							"type": "text"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"data\": {\n        \"GOGLOBAL\": \"goglobal\",\n        \"DIDA\": \"dida\"\n    }\n}"
+				}
+			]
+		}
+	]
+}
