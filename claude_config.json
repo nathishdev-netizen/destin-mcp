@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "destin-travel": {
+      "command": "/Users/nathish/Desktop/Nathish/tt/destin_mcp_server/venv/bin/python",
+      "args": ["/Users/nathish/Desktop/Nathish/tt/destin_mcp_server/main.py"],
+      "env": {
+        "BASE_URL": "https://supplier-apis-for-travel-tech.vercel.app",
+        "DEFAULT_SUPPLIER": "dida"
+      }
+    }
+  }
+}

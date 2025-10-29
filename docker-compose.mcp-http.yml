@@ -1,0 +1,30 @@
+services:
+  destin-mcp-server:
+    build: .
+    container_name: destin-mcp-server-claude
+    restart: unless-stopped
+    environment:
+      - PYTHONPATH=/app/src
+      - LOG_LEVEL=INFO
+      - MCP_MODE=mcp-http
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - mcp-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  logs:
+    driver: local
