@@ -4,8 +4,8 @@ import asyncio
 import json
 import logging
 from typing import Any, Dict, Optional, List
-from fastapi import FastAPI, Request, Response, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import StreamingResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
@@ -56,11 +56,11 @@ class MCPHTTPTransport:
         )
     
     def _setup_routes(self):
-        """Setup MCP protocol routes."""
+        """Setup HTTP routes for MCP protocol."""
         
         @self.app.get("/")
         async def root():
-            """MCP server info endpoint."""
+            """Server information endpoint."""
             return {
                 "name": "Destin MCP Server",
                 "version": "1.0.0",
@@ -78,6 +78,74 @@ class MCPHTTPTransport:
                     "sse": "/sse/{client_id}"
                 }
             }
+        
+        @self.app.get("/.well-known/oauth-authorization-server")
+        async def oauth_authorization_server():
+            """OAuth authorization server metadata."""
+            return {
+                "issuer": "https://uninventive-davin-semihistorically.ngrok-free.dev",
+                "authorization_endpoint": "https://uninventive-davin-semihistorically.ngrok-free.dev/oauth/authorize",
+                "token_endpoint": "https://uninventive-davin-semihistorically.ngrok-free.dev/oauth/token",
+                "registration_endpoint": "https://uninventive-davin-semihistorically.ngrok-free.dev/register",
+                "response_types_supported": ["code"],
+                "grant_types_supported": ["authorization_code"],
+                "code_challenge_methods_supported": ["S256"]
+            }
+        
+        @self.app.get("/.well-known/oauth-protected-resource")
+        async def oauth_protected_resource():
+            """OAuth protected resource metadata."""
+            return {
+                "resource": "https://uninventive-davin-semihistorically.ngrok-free.dev",
+                "authorization_servers": ["https://uninventive-davin-semihistorically.ngrok-free.dev"]
+            }
+        
+        @self.app.post("/register")
+        async def register_client():
+            """Dynamic client registration endpoint."""
+            return {
+                "client_id": "destin-mcp-client",
+                "client_secret": "destin-mcp-secret",
+                "client_name": "Destin MCP Server",
+                "redirect_uris": ["https://claude.ai/api/mcp/auth_callback"],
+                "grant_types": ["authorization_code"],
+                "response_types": ["code"],
+                "token_endpoint_auth_method": "client_secret_post"
+            }
+        
+        @self.app.get("/oauth/authorize")
+        async def oauth_authorize(
+            response_type: str,
+            client_id: str,
+            redirect_uri: str,
+            scope: str = "",
+            state: str = "",
+            code_challenge: str = "",
+            code_challenge_method: str = ""
+        ):
+            """OAuth authorization endpoint - auto-approve for MCP."""
+            # For MCP servers, we auto-approve the authorization
+            auth_code = "mcp-auth-code-12345"
+            return RedirectResponse(
+                url=f"{redirect_uri}?code={auth_code}&state={state}",
+                status_code=302
+            )
+        
+        @self.app.post("/oauth/token")
+        async def oauth_token(request: Request):
+            """OAuth token endpoint."""
+            form_data = await request.form()
+            grant_type = form_data.get("grant_type")
+            
+            if grant_type == "authorization_code":
+                return {
+                    "access_token": "mcp-access-token-12345",
+                    "token_type": "Bearer",
+                    "expires_in": 3600,
+                    "scope": "mcp"
+                }
+            else:
+                raise HTTPException(status_code=400, detail="Unsupported grant type")
         
         @self.app.get("/health")
         async def health_check():
