@@ -179,10 +179,16 @@ class MCPHTTPTransport:
         return {
             "protocolVersion": "2024-11-05",
             "capabilities": {
-                "tools": {"listChanged": True},
-                "resources": {"listChanged": True, "subscribe": False},
-                "prompts": {"listChanged": True},
-                "logging": {}
+                "tools": {
+                    "listChanged": True
+                },
+                "resources": {
+                    "listChanged": True,
+                    "subscribe": False
+                },
+                "prompts": {
+                    "listChanged": True
+                }
             },
             "serverInfo": {
                 "name": "Destin MCP Server",
@@ -193,7 +199,7 @@ class MCPHTTPTransport:
     async def _handle_list_tools(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Handle tools/list request."""
         tools = []
-        if self.mcp_server.hotel_tools:
+        if hasattr(self.mcp_server, 'tools') and self.mcp_server.tools:
             tools.extend([tool.model_dump() for tool in self.mcp_server.tools])
         
         return {"tools": tools}
