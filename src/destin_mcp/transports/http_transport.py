@@ -5,7 +5,7 @@ import json
 import logging
 from typing import Any, Dict, Optional, List
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import StreamingResponse, RedirectResponse
+from fastapi.responses import StreamingResponse, RedirectResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
@@ -166,6 +166,11 @@ class MCPHTTPTransport:
                 
                 if method == "initialize":
                     result = await self._handle_initialize(params)
+                elif method == "initialized":
+                    result = {}  # Empty response for initialized notification
+                elif method == "notifications/initialized":
+                    # This is a notification, no response needed
+                    return Response(status_code=204)
                 elif method == "tools/list":
                     result = await self._handle_list_tools(params)
                 elif method == "tools/call":
@@ -256,11 +261,16 @@ class MCPHTTPTransport:
                 },
                 "prompts": {
                     "listChanged": True
-                }
+                },
+                "experimental": {},
+                "logging": {}
             },
             "serverInfo": {
                 "name": "Destin MCP Server",
                 "version": "1.0.0"
+            },
+            "_meta": {
+                "transport": "http+sse"
             }
         }
     

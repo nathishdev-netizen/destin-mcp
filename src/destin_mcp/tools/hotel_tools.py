@@ -24,6 +24,7 @@ class HotelTools(BaseTool):
         return [
             Tool(
                 name="search_hotels",
+                title="Hotel Search Engine",
                 description="""🔍 **HOTEL SEARCH ENGINE**
 
 **IMPORTANT FOR AI ASSISTANTS**: When users ask about hotels, be conversational! Don't immediately show technical JSON. Instead:
@@ -119,10 +120,20 @@ class HotelTools(BaseTool):
                         }
                     },
                     "required": ["country", "fromDate", "toDate", "occupancy"]
-                }
+                },
+                outputSchema={"type": "object"},
+                annotations={
+                    "title": "Hotel Search Engine",
+                    "readOnlyHint": False,
+                    "destructiveHint": False,
+                    "idempotentHint": True,
+                    "openWorldHint": False
+                },
+                icons=[]
             ),
             Tool(
                 name="book_hotel",
+                title="Hotel Booking System",
                 description="""🏨 **HOTEL BOOKING SYSTEM**
 
 **IMPORTANT**: Always include the hotelId from search results when booking!
@@ -244,10 +255,20 @@ class HotelTools(BaseTool):
                         }
                     },
                     "required": ["hotelId", "country", "fromDate", "toDate", "roomCode", "contact", "rooms"]
-                }
+                },
+                outputSchema={"type": "object"},
+                annotations={
+                    "title": "Hotel Booking System",
+                    "readOnlyHint": False,
+                    "destructiveHint": True,
+                    "idempotentHint": False,
+                    "openWorldHint": False
+                },
+                icons=[]
             ),
             Tool(
                 name="get_hotel_info",
+                title="Hotel Information Center",
                 description="""ℹ️ **HOTEL INFORMATION CENTER**
                 
 **Purpose**: Comprehensive hotel information system providing detailed property data, amenities, and policies.
@@ -320,10 +341,20 @@ class HotelTools(BaseTool):
                         }
                     },
                     "required": ["hotelId", "country", "fromDate", "toDate", "occupancy"]
-                }
+                },
+                outputSchema={"type": "object"},
+                annotations={
+                    "title": "Hotel Information Center",
+                    "readOnlyHint": True,
+                    "destructiveHint": False,
+                    "idempotentHint": True,
+                    "openWorldHint": False
+                },
+                icons=[]
             ),
             Tool(
                 name="get_booking_details",
+                title="Booking Management System",
                 description="""📋 **BOOKING MANAGEMENT SYSTEM**
                 
 **Purpose**: Complete booking information retrieval and management system for existing hotel reservations.
@@ -371,10 +402,20 @@ class HotelTools(BaseTool):
                         }
                     },
                     "required": ["bookingId"]
-                }
+                },
+                outputSchema={"type": "object"},
+                annotations={
+                    "title": "Booking Management System",
+                    "readOnlyHint": True,
+                    "destructiveHint": False,
+                    "idempotentHint": True,
+                    "openWorldHint": False
+                },
+                icons=[]
             ),
             Tool(
                 name="list_suppliers",
+                title="Supplier Network Directory",
                 description="""🏢 **SUPPLIER NETWORK DIRECTORY**
                 
 **Purpose**: Comprehensive directory of available hotel suppliers and booking sources with their capabilities and coverage.
@@ -410,7 +451,16 @@ class HotelTools(BaseTool):
                     "type": "object",
                     "properties": {},
                     "additionalProperties": False
-                }
+                },
+                outputSchema={"type": "object"},
+                annotations={
+                    "title": "Supplier Network Directory",
+                    "readOnlyHint": True,
+                    "destructiveHint": False,
+                    "idempotentHint": True,
+                    "openWorldHint": False
+                },
+                icons=[]
             )
         ]
     

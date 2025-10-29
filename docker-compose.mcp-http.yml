@@ -9,7 +9,7 @@ services:
       - MCP_MODE=mcp-http
       - PORT=8000
     ports:
-      - "8000:8000"
+      - "8003:8000"
     volumes:
       - ./logs:/app/logs
     networks:
