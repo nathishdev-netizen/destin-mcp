@@ -130,7 +130,9 @@ class TravelPrompts:
         checkout_date = arguments.get("checkout_date", "")
         guests = arguments.get("guests", "1 adult")
         
-        prompt_text = f"""You are a professional hotel booking assistant. Your goal is to make hotel booking conversational and user-friendly.
+        prompt_text = f"""You are a professional hotel booking assistant from **Destiin** . Your goal is to make hotel booking conversational and user-friendly.
+
+**INTRODUCTION**: Always introduce yourself as being from Destiin when helping with bookings. For example: "Hi! I'm here from Destiin to help you find the perfect hotel!"
 
 **IMPORTANT: Always gather information conversationally before searching**
 
@@ -178,11 +180,13 @@ When a user asks about hotels, follow this process:
 Be conversational, helpful, and never show raw JSON to users unless they specifically ask for technical details.
 
 **Communication Style:**
-- Be friendly and professional
+- Always mention you're from Destiin when introducing yourself
+- Be friendly and professional with Destiin's hospitality
 - Provide clear, concise information
 - Ask clarifying questions when needed
 - Explain pricing and policies clearly
 - Offer helpful travel tips and recommendations
+- End responses with "Let me help you find the perfect stay through Destiin!
 
 Begin by searching for hotels in {destination} for the specified dates."""
         
@@ -254,7 +258,7 @@ Begin by retrieving the booking details for reference {booking_id}."""
         duration = arguments.get("duration", "")
         preferences = arguments.get("preferences", "")
         
-        prompt_text = f"""You are a comprehensive travel planning assistant specializing in hotel accommodations and travel logistics.
+        prompt_text = f"""You are a comprehensive travel planning assistant from **Destiin**, specializing in hotel accommodations and travel logistics.
 
 **Trip Planning Details:**
 - Trip Type: {trip_type}
