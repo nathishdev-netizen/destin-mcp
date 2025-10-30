@@ -35,8 +35,8 @@ class HotelTools(BaseTool):
         currency = room_data.get('Currency', room_data.get('currency', 'EUR'))
         
         # Calculate totals
-        total_adults = sum(occ.get('adults', 1) for occ in occupancy)
-        total_rooms = sum(occ.get('roomCount', 1) for occ in occupancy)
+        total_adults = sum(occ.adults if hasattr(occ, 'adults') else occ.get('adults', 1) for occ in occupancy)
+        total_rooms = sum(occ.roomCount if hasattr(occ, 'roomCount') else occ.get('roomCount', 1) for occ in occupancy)
         
         # Base calculations
         price_per_night = total_price / nights if nights > 0 else total_price
@@ -601,6 +601,8 @@ class HotelTools(BaseTool):
         
         # Prepare request data
         request_data = search_data.dict(exclude={"supplier"})
+        # Ensure EUR currency is always used
+        request_data["currency"] = "EUR"
         
         # Make API request
         result = await self.http_client.make_request(
@@ -614,6 +616,7 @@ class HotelTools(BaseTool):
         # Format response
         if result.get("success") and result.get("data"):
             data = result["data"]
+            
             
             # Check if data is an error response
             if isinstance(data, dict) and "Code" in data and "Message" in data:
@@ -629,13 +632,19 @@ class HotelTools(BaseTool):
                 
                 for i, hotel in enumerate(hotels, 1):
                     response_text += f"**{i}. {hotel.get('name', 'N/A')}**\n"
-                    response_text += f"📍 Hotel ID: `{hotel.get('id', 'N/A')}`\n"
-                    response_text += f"🏢 Supplier: {hotel.get('supplier', 'N/A')}\n"
+                    # Include hotel ID subtly for API reference (hidden from main display)
+                    response_text += f"*Hotel Reference: {hotel.get('id', 'N/A')}*\n"
                     
-                    if 'rooms' in hotel:
-                        room = hotel['rooms']
-                        total_price = room.get('price', 0)
-                        currency = room.get('currency', 'EUR')
+                    if 'rooms' in hotel and hotel['rooms']:
+                        rooms = hotel['rooms']
+                        # Handle both single room dict and list of rooms
+                        if isinstance(rooms, list):
+                            room = rooms[0]  # Take first room for pricing display
+                        else:
+                            room = rooms
+                        
+                        total_price = room.get('TotalPrice', room.get('price', 0))
+                        currency = room.get('Currency', room.get('currency', 'EUR'))
                         
                         # Enhanced price display
                         response_text += f"\n💰 **Pricing:**\n"
@@ -647,15 +656,41 @@ class HotelTools(BaseTool):
                         
                         # Calculate per guest if occupancy available
                         if hasattr(search_data, 'occupancy') and search_data.occupancy:
-                            total_guests = sum(occ.get('adults', 1) for occ in search_data.occupancy)
+                            total_guests = sum(occ.adults for occ in search_data.occupancy)
                             if total_guests > 0:
                                 price_per_guest = total_price / total_guests
                                 response_text += f"• **Per Guest**: {price_per_guest:.2f} {currency} (total for {total_guests} guest{'s' if total_guests != 1 else ''})\n"
                         
-                        response_text += f"• **Room Basis**: {room.get('room_basis', 'Not specified')}\n"
-                        response_text += f"• **Room Code**: `{room.get('id', 'N/A')}`\n"
+                        response_text += f"• **Room Basis**: {room.get('RoomBasis', room.get('room_basis', 'Room Only'))}\n"
+                        # Hide Room Code from user (technical booking detail)
                     
                     response_text += "\n" + "─" * 50 + "\n\n"
+                
+                # Add comprehensive summary
+                response_text += "📊 **SEARCH SUMMARY**\n\n"
+                response_text += f"🏨 **Total Hotels Found**: {len(hotels)}\n"
+                response_text += f"📅 **Stay Duration**: {nights} night{'s' if nights != 1 else ''}\n"
+                
+                # Find price range
+                prices = []
+                for hotel in hotels:
+                    if 'rooms' in hotel and hotel['rooms']:
+                        rooms = hotel['rooms']
+                        room = rooms[0] if isinstance(rooms, list) else rooms
+                        price = room.get('TotalPrice', room.get('price', 0))
+                        if price > 0:
+                            prices.append(price)
+                
+                if prices:
+                    min_price = min(prices)
+                    max_price = max(prices)
+                    response_text += f"💰 **Price Range**: {min_price:.2f} - {max_price:.2f} EUR\n"
+                    response_text += f"🏆 **Most Affordable**: {min_price:.2f} EUR ({min_price/nights:.2f} EUR/night)\n"
+                
+                response_text += f"\n🎯 **Next Steps**:\n"
+                response_text += f"• Tell me the hotel name, number, or reference ID for detailed information\n"
+                response_text += f"• I can help you book any of these hotels - just let me know which one!\n"
+                response_text += f"• All prices shown are in EUR for {sum(occ.adults for occ in search_data.occupancy)} guest{'s' if sum(occ.adults for occ in search_data.occupancy) != 1 else ''}\n"
                 
                 return CallToolResult(
                     content=[TextContent(type="text", text=response_text)]
@@ -763,6 +798,8 @@ class HotelTools(BaseTool):
         
         # Prepare request data (excluding hotelId and supplier)
         request_data = {k: v for k, v in arguments.items() if k not in ["hotelId", "supplier"]}
+        # Ensure EUR currency is always used
+        request_data["currency"] = "EUR"
         
         # Make API request
         result = await self.http_client.make_request(
@@ -775,20 +812,31 @@ class HotelTools(BaseTool):
         # Format response
         if result.get("success") and result.get("data"):
             hotel = result["data"]
+            
+            # Check if hotel data is valid
+            if not isinstance(hotel, dict):
+                return CallToolResult(
+                    content=[TextContent(type="text", text=f"Invalid hotel data received: {type(hotel)} - {str(hotel)[:100]}")]
+                )
+            
             response_text = f"🏨 **{hotel.get('name', 'N/A')}**\n\n"
             
             # Basic hotel information
             response_text += f"📍 **Hotel Details:**\n"
-            response_text += f"• Hotel ID: {hotel.get('id', 'N/A')}\n"
+            # Hide Hotel ID from user (technical detail)
             response_text += f"• Star Rating: {hotel.get('starRating', 'N/A')} stars\n"
-            response_text += f"• Currency: {hotel.get('currency', 'N/A')}\n"
+            # Hide Currency from user (already shown in pricing)
             
             # Location information
             if 'location' in hotel:
                 location = hotel['location']
-                response_text += f"• Address: {location.get('address', 'N/A')}\n"
-                response_text += f"• City: {location.get('destination', 'N/A')}\n"
-                response_text += f"• Country: {location.get('country', 'N/A')}\n"
+                if isinstance(location, dict):
+                    response_text += f"• Address: {location.get('address', 'N/A')}\n"
+                    response_text += f"• City: {location.get('destination', 'N/A')}\n"
+                    response_text += f"• Country: {location.get('country', 'N/A')}\n"
+                else:
+                    # Handle case where location is a string
+                    response_text += f"• Location: {location}\n"
             
             if hotel.get('telephone'):
                 response_text += f"• Phone: {hotel['telephone']}\n"
@@ -856,41 +904,43 @@ class HotelTools(BaseTool):
                 occupancy = arguments.get('occupancy', [{'adults': 1, 'roomCount': 1}])
                 
                 for room in hotel['rooms']:
+                    # Get room name (first room type from the Rooms array)
                     room_names = room.get('Rooms', [])
-                    if room_names:
-                        for room_name in room_names:
-                            response_text += f"**Option {room_counter}: {room_name}**\n"
-                            
-                            # Enhanced price breakdown using helper method
-                            price_breakdown = self._format_price_breakdown(room, occupancy, nights)
-                            response_text += price_breakdown + "\n"
-                            
-                            response_text += f"🛏️ **Room Details:**\n"
-                            response_text += f"• **Room Basis**: {room.get('RoomBasis', 'Not specified')}\n"
-                            response_text += f"• **Booking Code**: `{room.get('HotelSearchCode', 'N/A')}`\n"
-                            
-                            if room.get('CxlDeadLine'):
-                                response_text += f"• **Cancellation Deadline**: {room['CxlDeadLine']}\n"
-                            
-                            if room.get('CancellationPolicies'):
-                                response_text += f"• **Cancellation Policy**:\n"
-                                for policy in room['CancellationPolicies']:
-                                    if policy.get('FromDate') and policy.get('Amount'):
-                                        response_text += f"  - Fee: {policy['Amount']} {room.get('Currency', 'EUR')} from {policy['FromDate']}\n"
-                            
-                            response_text += "\n" + "─" * 40 + "\n\n"
-                            room_counter += 1
+                    room_name = room_names[0] if room_names else 'Standard Room'
+                    
+                    response_text += f"**Option {room_counter}: {room_name}**\n"
+                    
+                    # Enhanced price breakdown using helper method
+                    price_breakdown = self._format_price_breakdown(room, occupancy, nights)
+                    response_text += price_breakdown + "\n"
+                    
+                    response_text += f"🛏️ **Room Details:**\n"
+                    response_text += f"• **Room Basis**: {room.get('RoomBasis', 'Room Only')}\n"
+                    # Include booking code for API use (subtle display)
+                    booking_code = room.get('HotelSearchCode', room.get('id', 'N/A'))
+                    response_text += f"• **Booking Reference**: `{booking_code}`\n"
+                    
+                    if room.get('CxlDeadLine'):
+                        response_text += f"• **Cancellation Deadline**: {room['CxlDeadLine']}\n"
+                    
+                    if room.get('CancellationPolicies'):
+                        response_text += f"• **Cancellation Policy**:\n"
+                        for policy in room['CancellationPolicies']:
+                            if policy.get('FromDate') and policy.get('Amount'):
+                                response_text += f"  - Fee: {policy['Amount']} {room.get('Currency', 'EUR')} from {policy['FromDate']}\n"
+                    
+                    response_text += "\n" + "─" * 40 + "\n\n"
+                    room_counter += 1
                 
                 response_text += "🎯 **NEXT STEP: Choose Your Room!**\n"
-                response_text += "To book, tell me: *'I want to book Option [number]'* or *'Book room with code [booking code]'*\n"
+                response_text += "To book, tell me: *'I want to book Option [number]'* or *'Book with reference [booking code]'*\n"
                 response_text += "Example: *'I want to book Option 1'* or *'Book the Executive Room'*\n\n"
             
             # Booking suggestion
             response_text += "🎯 **Ready to book?**\n"
-            response_text += "Use the `book_hotel` tool with:\n"
-            response_text += f"• Hotel ID: `{hotel.get('id')}`\n"
-            response_text += "• Choose a room code from the available options\n"
-            response_text += "• Provide guest details and contact information\n\n"
+            response_text += "I can help you complete the booking! Just tell me:\n"
+            response_text += "• Which room option you prefer\n"
+            response_text += "• Guest names and contact information\n\n"
             
             response_text += "📞 **Need more help?** Ask me about:\n"
             response_text += "• Detailed room options and pricing\n"

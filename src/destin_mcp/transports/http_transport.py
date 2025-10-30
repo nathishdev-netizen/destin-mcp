@@ -49,9 +49,9 @@ class MCPHTTPTransport:
         """Setup CORS and other middleware."""
         self.app.add_middleware(
             CORSMiddleware,
-            allow_origins=["https://claude.ai", "https://claude.com", "*"],
+            allow_origins=["https://claude.ai", "https://claude.com", "http://localhost:6274", "http://localhost:6277", "*"],
             allow_credentials=True,
-            allow_methods=["GET", "POST", "OPTIONS"],
+            allow_methods=["GET", "POST", "OPTIONS", "HEAD"],
             allow_headers=["*"],
         )
     
@@ -152,6 +152,27 @@ class MCPHTTPTransport:
             """Health check endpoint."""
             return {"status": "healthy", "transport": "mcp-http"}
         
+        @self.app.get("/mcp-v1")
+        async def handle_mcp_get():
+            """Handle GET requests to MCP endpoint for connectivity testing."""
+            return {
+                "name": "Destin MCP Server",
+                "version": "1.0.0",
+                "protocol_version": "2024-11-05",
+                "description": "Travel booking MCP server with hotel search and booking capabilities",
+                "transport": "http+sse",
+                "capabilities": {
+                    "tools": True,
+                    "resources": True,
+                    "prompts": True,
+                    "logging": True
+                },
+                "endpoints": {
+                    "mcp": "/mcp-v1",
+                    "sse": "/sse/{client_id}"
+                }
+            }
+        
         @self.app.post("/mcp-v1")
         async def handle_mcp_request(request: Request):
             """Handle MCP JSON-RPC requests."""
@@ -169,8 +190,8 @@ class MCPHTTPTransport:
                 elif method == "initialized":
                     result = {}  # Empty response for initialized notification
                 elif method == "notifications/initialized":
-                    # This is a notification, no response needed
-                    return Response(status_code=204)
+                    # This is a notification, return empty success response
+                    result = {"success": True}
                 elif method == "tools/list":
                     result = await self._handle_list_tools(params)
                 elif method == "tools/call":
@@ -180,9 +201,9 @@ class MCPHTTPTransport:
                 elif method == "prompts/list":
                     result = await self._handle_list_prompts(params)
                 elif method == "logging/setLevel":
-                    # Handle logging level setting
+                    # Handle logging level setting - return empty result for MCP Inspector compatibility
                     level = params.get("level", "info")
-                    result = {"level": level}
+                    result = {}
                 elif method.startswith("notifications/"):
                     # Handle all notifications with empty response
                     return Response(status_code=200, content='{"jsonrpc": "2.0", "result": {}}', media_type="application/json")
@@ -256,19 +277,21 @@ class MCPHTTPTransport:
     
     async def _handle_initialize(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Handle MCP initialize request."""
+        # Support both old and new protocol versions
+        client_protocol = params.get("protocolVersion", "2024-11-05")
+        
+        # Use the client's protocol version if it's newer
+        if client_protocol == "2025-06-18":
+            protocol_version = "2025-06-18"
+        else:
+            protocol_version = "2024-11-05"
+            
         return {
-            "protocolVersion": "2024-11-05",
+            "protocolVersion": protocol_version,
             "capabilities": {
-                "tools": {
-                    "listChanged": True
-                },
-                "resources": {
-                    "listChanged": True,
-                    "subscribe": False
-                },
-                "prompts": {
-                    "listChanged": True
-                },
+                "tools": {"listChanged": True},
+                "resources": {"listChanged": True, "subscribe": False},
+                "prompts": {"listChanged": True},
                 "experimental": {},
                 "logging": {}
             },

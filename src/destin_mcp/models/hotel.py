@@ -104,7 +104,7 @@ class HotelSearchModel(BaseModel):
         description="Sort order"
     )
     currency: Optional[str] = Field(
-        default="USD", 
+        default="EUR", 
         description="Currency code"
     )
     occupancy: List[OccupancyModel] = Field(
@@ -143,7 +143,7 @@ class HotelBookingModel(BaseModel):
         description="Country code"
     )
     currency: str = Field(
-        default="USD", 
+        default="EUR", 
         description="Currency code"
     )
     fromDate: str = Field(
